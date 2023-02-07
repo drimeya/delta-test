@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-
+import { HttpClientModule } from '@angular/common/http';
 import { AppComponent } from './app.component';
 import { NgChartsModule } from 'ng2-charts';
 
@@ -10,7 +10,8 @@ import { NgChartsModule } from 'ng2-charts';
   ],
   imports: [
     BrowserModule,
-    NgChartsModule
+    NgChartsModule,
+    HttpClientModule
   ],
   providers: [],
   bootstrap: [AppComponent]

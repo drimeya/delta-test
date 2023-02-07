@@ -1,54 +1,56 @@
-<main class="container">
-  <div class="row">
-    <div class="col-12">
-      <div class="table-wrapper mt-4">
-        <h1 class="h3 text-center">В таблице представлен отчет за последние дни</h1>
-        <table class="table table-hover mt-4">
-          <thead>
-            <tr>
-              <th scope="col">Показатель</th>
-              <ng-container *ngFor="let item of Object.keys(dates)">
-                <ng-container *ngIf="item !== 'last'">
-                  <th [ngSwitch]="item" scope="col">
-                    <span *ngSwitchCase="'today'">Сегодня</span>
-                    <span *ngSwitchCase="'yesterday'">Вчера</span>
-                    <span *ngSwitchCase="'onLastWeek'">Этот день<br>прошлой недели</span>
-                  </th>
+<main class="container" *ngIf="loading == true">
+    <div class="row">
+      <div class="col-12">
+        <div class="table-wrapper mt-4">
+          <h1 class="h3 text-center">В таблице представлен отчет за последние дни</h1>
+          <table class="table table-hover mt-4">
+            <thead>
+              <tr>
+                <th scope="col">Показатель</th>
+                <ng-container *ngFor="let item of Object.keys(dates)">
+                  <ng-container *ngIf="item !== 'last'">
+                    <th [ngSwitch]="item" scope="col">
+                      <span *ngSwitchCase="'today'">Сегодня</span>
+                      <span *ngSwitchCase="'yesterday'">Вчера</span>
+                      <span *ngSwitchCase="'onLastWeek'">Этот день<br>прошлой недели</span>
+                    </th>
+                  </ng-container>
                 </ng-container>
-              </ng-container>
-              <th scope="col" class="dropdown">
-                <button class="btn btn-primary dropdown-toggle" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">{{currDate}}</button>
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                  <li *ngFor="let item of getAllDates()" (click)="addDate(item); currDate = item; drawChart()" class="dropdown-item">{{item}}</li>
-                </ul>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let item of Object.keys(getMetods())">
-              <td scope="row">{{item}}</td>
-              <td *ngFor="let key of Object.keys(dates)"
-              [class.possitive]="isPossitive(getMetods(key)[item]['p'])"
-              [class.negative]="isNegative(getMetods(key)[item]['p'])">
-                  <span class="data">{{getMetods(key)[item]['s']}}</span>
-                  <span *ngIf="isRercent(getMetods(key)[item]['p'])" class="analiz">
-                    {{getMetods(key)[item]['p']}}%
-                  </span>
-              </td>
-            </tr>
-            <tr>
-              <td colspan="5">
-                <canvas baseChart style="width: 100%;" height="200"
-                  [type]="'line'"
-                  [data]="lineChartData"
-                  [options]="lineChartOptions"
-                  [legend]="lineChartLegend">
-                </canvas>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                <th scope="col" class="dropdown">
+                  <button class="btn btn-primary dropdown-toggle" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">{{currDate}}</button>
+                  <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                    <li *ngFor="let item of getAllDates()" (click)="addDate(item); currDate = item; refreshGraph()" class="dropdown-item">{{item}}</li>
+                  </ul>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of Object.keys(getMetods())" (click)="label = item; refreshGraph()">
+                <td scope="row">{{item}}</td>
+                <td *ngFor="let key of Object.keys(dates)"
+                [class.possitive]="isPossitive(getMetods(key)[item]['p'])"
+                [class.negative]="isNegative(getMetods(key)[item]['p'])">
+                    <span class="data">{{getMetods(key)[item]['s']}}</span>
+                    <span *ngIf="isRercent(getMetods(key)[item]['p'])" class="analiz">
+                      {{getMetods(key)[item]['p']}}%
+                    </span>
+                </td>
+              </tr>
+              <tr>
+                <td colspan="5">
+                  <div class="chart-wrapper">
+                    <canvas baseChart height="200" *ngIf="lineChartActive"
+                    [type]="'line'"
+                    [data]="lineChartData"
+                    [options]="lineChartOptions"
+                    [legend]="lineChartLegend">
+                  </canvas>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-  </div>
 </main>

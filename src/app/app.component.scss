@@ -7,7 +7,7 @@
     tr {
         td, th {
             font-family: Arial, Helvetica, sans-serif;
-            width: 150px;
+            min-width: 150px;
             font-size: 14px;
             &:first-child {
                 width: unset;
@@ -35,4 +35,15 @@
 }
 .analiz {
     font-size: 0.7rem;
+}
+.chart-wrapper {
+    height: 200px;
+    canvas {
+        width: 100%;
+    }
+}
+@media (max-width: 576px) {
+    canvas {
+        max-width: 300px;
+    }
 }

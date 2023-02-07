@@ -1,5 +1,6 @@
-import { Input, Component } from '@angular/core';
-import { ChartConfiguration, ChartOptions, ChartType } from "chart.js";
+import {  Component } from '@angular/core';
+import { ChartConfiguration, ChartOptions } from "chart.js";
+import { HttpClient} from '@angular/common/http';
 
 interface MyDate {
   'day': string,
@@ -43,111 +44,30 @@ interface Res {
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'delta-test';
-  countDays: number = 2;
-  Object = Object;
+  public title = 'delta-test';
+  public Object = Object;
+  public loading = false;
+  public data: any;
+  public todayCache: any;
 
-  data: MyData = {
-    '05.02.2023': [
-      {
-      'checkId': 1,
-      'paymentMethod': 'credit',
-      'clientId': 1,
-      'removeBeforePay': 60,
-      'removeAfterPay': 0,
-      'summ': 2460
-      },
-      {
-      'checkId': 2,
-      'paymentMethod': 'card',
-      'clientId': 1,
-      'removeBeforePay': 60,
-      'removeAfterPay': 0,
-      'summ': 2460
-      }],
-    '04.02.2023': [
-      {
-      'checkId': 4,
-      'paymentMethod': 'nal',
-      'clientId': 1,
-      'removeBeforePay': 60,
-      'removeAfterPay': 0,
-      'summ': 2460
-      },
-      {
-      'checkId': 6,
-      'paymentMethod': 'nal',
-      'clientId': 2,
-      'removeBeforePay': 60,
-      'removeAfterPay': 0,
-      'summ': 2460
-      }],
-    '29.01.2023': [
-      {
-      'checkId': 7,
-      'paymentMethod': 'nal',
-      'clientId': 1,
-      'removeBeforePay': 60,
-      'removeAfterPay': 0,
-      'summ': 1200
-      },
-      {
-      'checkId': 9,
-      'paymentMethod': 'nal',
-      'clientId': 1,
-      'removeBeforePay': 60,
-      'removeAfterPay': 0,
-      'summ': 2460
-      }],
-    '30.01.2023': [
-      {
-      'checkId': 7,
-      'paymentMethod': 'nal',
-      'clientId': 1,
-      'removeBeforePay': 60,
-      'removeAfterPay': 0,
-      'summ': 1200
-      },
-      {
-      'checkId': 9,
-      'paymentMethod': 'nal',
-      'clientId': 1,
-      'removeBeforePay': 60,
-      'removeAfterPay': 0,
-      'summ': 2460
-      }]
-  }
-
-  dates = this.getDates();
-  currDate = 'Выбрать день';
+  public dates = this.getDates();
+  public currDate = 'Выбрать день';
 
   public getMetods(key:string = 'today') {
-    let methods: Metods = {
-       'Выручка, руб.': this.calcRevenue(this.dates[key]),
-       'Наличные, руб.': this.calcByPayment(this.dates[key], 'nal'),
-       'Безналичный расчет, руб.': this.calcByPayment(this.dates[key], 'card'),
-       'Креднитные карты, руб.': this.calcByPayment(this.dates[key], 'credit'),
-       'Средний чек, руб.': this.calcMediumCheck(this.dates[key]),
-       'Средний гость, руб.': this.calcMediumClient(this.dates[key]),
-       'Удаления из чека(после оплаты), руб.': this.calcRemoveAfterPay(this.dates[key]),
-       'Удаления из чека(до оплаты), руб.': this.calcRemoveBeforePay(this.dates[key]),
-       'Количество чеков': this.calcCount(this.dates[key]),
-       'Количество гостей': this.calcClients(this.dates[key])
-     }
-     return methods;
-  }
-
-  todayCache: Metods = {
-    'calcRevenue': this.calcRevenue(this.dates['today']),
-    'calcByPaymentNal': this.calcByPayment(this.dates['today'], 'nal'),
-    'calcByPaymentCard': this.calcByPayment(this.dates['today'], 'card'),
-    'calcByPaymentCredit': this.calcByPayment(this.dates['today'], 'credit'),
-    'calcMediumCheck': this.calcMediumCheck(this.dates['today']),
-    'calcMediumClient': this.calcMediumClient(this.dates['today']),
-    'calcRemoveAfterPay': this.calcRemoveAfterPay(this.dates['today']),
-    'calcRemoveBeforePay': this.calcRemoveBeforePay(this.dates['today']),
-    'calcCount': this.calcCount(this.dates['today']),
-    'calcClients': this.calcClients(this.dates['today'])
+      let methods: Metods = {
+        'Выручка, руб.': this.calcRevenue(this.dates[key]),
+        'Наличные, руб.': this.calcByPayment(this.dates[key], 'nal'),
+        'Безналичный расчет, руб.': this.calcByPayment(this.dates[key], 'card'),
+        'Креднитные карты, руб.': this.calcByPayment(this.dates[key], 'credit'),
+        'Средний чек, руб.': this.calcMediumCheck(this.dates[key]),
+        'Средний гость, руб.': this.calcMediumClient(this.dates[key]),
+        'Удаления из чека(после оплаты), руб.': this.calcRemoveAfterPay(this.dates[key]),
+        'Удаления из чека(до оплаты), руб.': this.calcRemoveBeforePay(this.dates[key]),
+        'Количество чеков': this.calcCount(this.dates[key]),
+        'Количество гостей': this.calcClients(this.dates[key])
+      }
+      return methods;
+    
   }
   public isRercent(val: any): boolean {
     if (typeof(val) === 'number' &&  !(val === Infinity || val === -Infinity) && !Number.isNaN(val) && val !== 0) {
@@ -214,11 +134,14 @@ export class AppComponent {
   }
 
   public getAllDates() {
-    let dates: string[] = [];
-    for (let key in this.data) {
-      dates.push(key);
-    }
-    return dates;
+    let dates: string[] = [
+      this.setDate(2),
+      this.setDate(3),
+      this.setDate(4),
+      this.setDate(5),
+      this.setDate(6)
+    ]
+    return dates
   }
 
   public addDate(item:string) {
@@ -325,6 +248,7 @@ export class AppComponent {
         a += item.summ
       }
       s = a/this.data[date].length
+      s = Math.round(s);
       p = this.calcPresents(date, 'calcMediumCheck', s);
     } else {
       s = "Нет данных";
@@ -341,7 +265,7 @@ export class AppComponent {
     if (this.data[date]) {
       let arr: ClientSum = {};
       for (let item of this.data[date]) {
-        if (arr[item.checkId]) {
+        if (Object.keys(arr).includes(item.checkId)) {
           arr[item.checkId] = arr[item.checkId] + item.summ
         } else {
           arr[item.checkId] = item.summ
@@ -353,6 +277,7 @@ export class AppComponent {
         s += arr[i]
       }
       s = (s/Object.keys(arr).length)
+      s = Math.round(s);
       p = this.calcPresents(date, 'calcMediumClient', s);
     } else {
       s = "Нет данных";
@@ -403,53 +328,111 @@ export class AppComponent {
   }
 
   //график
+  label: string = 'Выручка, руб.';
+  lineChartActive: boolean = true;
 
-  public setDataForCharts() {
+  public setDataForCharts(method: string = this.label) {
     let labels: string[] = [];
     for (let item in this.dates) {
       labels.push(this.dates[item]);
+      //меняю местами последние 2, тк этот день прошлой недели самый последний день из отчета
+      if (labels.length == 4) {
+        [labels[2], labels[3]] = [labels[3], labels[2]];
+      }
+      
     }
     labels.reverse();
-    console.log(labels);
 
-    let datas: Array<any> = [];
+    let newData: Array<any> = [];
     for (let item in this.dates) {
-      datas.push(this.calcRevenue(this.dates[item])['s']);
+      for (let key in this.getMetods()) {
+        if (key == this.label) {
+          newData.push(this.getMetods(item)[key]['s'])
+        }
+      }
+      if (newData.length == 4) {
+        [newData[2], newData[3]] = [newData[3], newData[2]];
+      }
     }
-    datas.reverse();
+    newData.reverse();
 
     const chart = {
       'labels': labels,
-      'data': datas
+      'data': newData
     }
     return chart;
   }
 
-  drawChart(){
-    setTimeout(()=> {
-      let clone = JSON.parse(JSON.stringify(this.lineChartData));
-      this.lineChartData=clone;
-    },100)   
+  public refreshGraph() {
+    this.lineChartActive = false;
+    
+    this.lineChartData = {
+      labels: this.setDataForCharts()['labels'],
+      datasets: [
+        {
+          data: this.setDataForCharts()['data'],
+          label: this.label,
+          fill: true,
+          tension: 0.5,
+          borderColor: 'black',
+          backgroundColor: 'rgba(255,0,0,0.3)'
+        }
+      ]
+    };
+    setTimeout(()=>{
+      this.lineChartActive = true;
+    },100);
   }
-
-  public lineChartData: ChartConfiguration<'line'>['data'] = {
-    labels: this.setDataForCharts()['labels'],
-    datasets: [
-      {
-        data: this.setDataForCharts()['data'],
-        label: 'Series A',
-        fill: true,
-        tension: 0.5,
-        borderColor: 'black',
-        backgroundColor: 'rgba(255,0,0,0.3)'
-      }
-    ]
-  };
+  public lineChartLegend = true;
+  public lineChartData: any;
   public lineChartOptions: ChartOptions<'line'> = {
     responsive: false
   };
-  public lineChartLegend = true;
 
-  constructor() {
+  constructor(private http: HttpClient) {
+  }
+  ngOnInit(){
+    this.http.get('ajax/api.php').subscribe((res: any)=>{
+      if (res) {
+        this.data = res;
+
+        for (let item in res) {
+          for (let i in res[item]) {
+            for (let a in res[item][i]) {
+              if (a !== 'paymentMethod' && a!= 'date')
+              res[item][i][a] = +res[item][i][a]
+            }
+          }
+        }
+        this.data = res;
+        this.todayCache = {
+          'calcRevenue': this.calcRevenue(this.dates['today']),
+          'calcByPaymentNal': this.calcByPayment(this.dates['today'], 'nal'),
+          'calcByPaymentCard': this.calcByPayment(this.dates['today'], 'card'),
+          'calcByPaymentCredit': this.calcByPayment(this.dates['today'], 'credit'),
+          'calcMediumCheck': this.calcMediumCheck(this.dates['today']),
+          'calcMediumClient': this.calcMediumClient(this.dates['today']),
+          'calcRemoveAfterPay': this.calcRemoveAfterPay(this.dates['today']),
+          'calcRemoveBeforePay': this.calcRemoveBeforePay(this.dates['today']),
+          'calcCount': this.calcCount(this.dates['today']),
+          'calcClients': this.calcClients(this.dates['today'])
+        }
+
+        this.lineChartData = {
+          labels: this.setDataForCharts()['labels'],
+          datasets: [
+            {
+              data: this.setDataForCharts()['data'],
+              label: this.label,
+              fill: true,
+              tension: 0.5,
+              borderColor: 'black',
+              backgroundColor: 'rgba(255,0,0,0.3)'
+            }
+          ]
+        };
+        this.loading = true;
+      }
+    })
   }
 }
